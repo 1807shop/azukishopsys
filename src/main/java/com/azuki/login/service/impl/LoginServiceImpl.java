@@ -21,7 +21,7 @@ public class LoginServiceImpl implements LoginService {
         if (userInfo==null){
             return false;
         }
-        if (userInfo.getStatus()!=2){
+        if (userInfo1.getStatus()!=2){
             return false;
         }
         return true;
