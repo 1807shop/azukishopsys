@@ -93,12 +93,13 @@
                         <div class="form-group has-feedback">
                             <div class="input-group">
                                 <div class="input-group-addon">查询条件</div>
-                                <input class="form-control has-success" type="text" placeholder="请输入查询条件">
+                                <input class="form-control has-success" id="typeName" type="text" placeholder="请输入商品类别名称">
+                                <input class="form-control has-success" id="parentId" type="text" oninput="this.value = this.value.replace(/[^0-9]/g, '');"  placeholder="请输入父类别ID">
                             </div>
                         </div>
-                        <button type="button" class="btn btn-warning"><i class="glyphicon glyphicon-search"></i> 查询</button>
+                        <button type="button" class="btn btn-warning" onclick="initPage(1)"><i class="glyphicon glyphicon-search"></i> 查询</button>
                     </form>
-                    <button type="button" class="btn btn-danger" style="float:right;margin-left:10px;"><i class=" glyphicon glyphicon-remove"></i> 删除</button>
+                    <button type="button" class="btn btn-danger" id="batchDel" style="float:right;margin-left:10px;"><i class=" glyphicon glyphicon-remove"></i> 删除</button>
                     <button type="button" class="btn btn-primary" style="float:right;" onclick="window.location.href='addGoodsType.html'"><i class="glyphicon glyphicon-plus"></i> 新增</button>
                     <br>
                     <hr style="clear:both;">
@@ -107,7 +108,7 @@
                             <thead>
                             <tr >
                                 <th width="30">#</th>
-                                <th width="30"><input type="checkbox"></th>
+                                <th width="30"><input type="checkbox" id="idFlag"></th>
                                 <th>商品类别名称</th>
                                 <th>父类别ID(没有为0)</th>
                                 <th width="100">操作</th>
@@ -173,6 +174,178 @@
     $("tbody .btn-primary").click(function(){
         window.location.href = "goodsTypeEdit.html";
     });
+
+    initPage(1);
+
+    function initPage(current) {
+        var typeName = $("#typeName").val().trim();
+        var parentId = $("#parentId").val().trim();
+        $.ajax({
+            type: 'POST',
+            url: 'GoodsTypeList?currentPage='+current,
+            contentType: "application/json; charset=utf-8",
+            data: JSON.stringify({
+                "currentPage":current,
+                "typeName":typeName,
+                "parentId":parentId
+            }),
+            success:function (page) {
+                console.log(page);
+                console.log(page.pageNum);
+
+
+                var str="";
+
+                $(".pagination").empty();
+                if(page.pageNum==1){
+                    str = "<li class=\"disabled\"><a href=\"#\">上一页</a></li>";
+                }else{
+                    str = "<li><a href=\"#\" onclick='initPage("+page.prePage+")' >上一页</a></li>";
+                }
+//                        alert(splitePageBean.currentPage);
+                for(var i=1;i<=page.pages;i++){
+                    if(i==page.pageNum){
+                        str += "<li class=\"active\"><a href=\"#\" onclick='initPage("+i+")'>"+i+"</a></li>"
+                    }else {
+                        str += "<li><a href=\"#\" onclick='initPage("+i+")'>"+i+"</a></li>"
+
+                    }
+                }
+                if(page.pageNum==page.pages){
+                    str += "<li class=\"disabled\"><a href=\"#\" >下一页</a></li>";
+                }else{
+                    str += "<li><a href=\"#\" onclick='initPage("+page.nextPage+")'>下一页</a></li>";
+                }
+                $(".pagination").html(str);
+
+
+
+                //清空以前列表
+                $("tbody>tr").each(function (index){
+                    $(this).remove();
+                })
+
+
+
+                $(page.list).each(function (index,item){
+
+                    $("tbody").append("<tr>"+
+                        "<td>"+item.categoryId+"</td>"+
+                        "<td><input type=\"checkbox\" class=\"ids\" value='"+item.categoryId+"'></td>"+
+                        "<td>"+item.typeName+"</td>"+
+                        "<td>"+item.parentId+"</td>"+
+                        "<td>"+
+                        "<button type=\"button\" class=\"btn btn-primary btn-xs\" onclick='jumpToEdit("+item.categoryId+")'><i class=\" glyphicon glyphicon-pencil\"></i></button>"+"&nbsp;"+
+                        "<button type=\"button\" class=\"btn btn-danger btn-xs\" onclick='deleteGoodsType("+item.categoryId+")'><i class=\" glyphicon glyphicon-remove\"></i></button>"+
+                        "</td>"+
+                        "</tr>");
+                });
+
+
+                //批量删除
+                $(function () {
+                    //全选
+                    var count = 0;
+                    $("#idFlag").click(function () {
+                        var flag = $(this).prop("checked");
+                        if(flag){
+                            count = $(".ids").length;
+                        }else {
+                            count =0;
+                        }
+                        $(".ids").each(function () {
+                            $(this).prop("checked",flag);
+                        })
+
+                    })
+                    //单个选
+                    $(".ids").each(function () {
+                        $(this).click(function () {
+                            if($(this).prop("checked")){
+                                count++;
+                                if(count==$(".ids").length){
+                                    $("#idFlag").prop("checked",true);
+                                }
+                            }else {
+                                count--;
+                                $("#idFlag").prop("checked",false);
+                            }
+
+                        })
+                    })
+                    //batchDel 批量删除
+                    $("#batchDel").click(function () {
+                        var array1 = new Array();
+                        $(".ids:checked").each(function () {
+                            var id = $(this).val();
+                            array1.push(id);
+                        })
+
+
+
+                        $.ajax({
+                            type: 'POST',
+                            url: 'batchDelete',
+                            contentType: "application/json; charset=utf-8",
+                            dataType: 'json',
+                            data: JSON.stringify({
+                                "goodsTypeIds":array1
+                            }),
+
+                            success: function(responseText){
+                                console.log(responseText);
+                                if(responseText==true){
+                                    // alert("删除成功");
+                                    window.location.href = "goodsType.html";
+                                }else {
+                                    window.location.href = "goodsType.html";
+                                }
+                            },
+                            error: function (message) {
+                                console.log(message);
+                            },
+
+                        });
+
+                    });
+                });
+
+            },
+            error:function (response) {
+                console.log(response)
+            }
+        });
+    }
+
+    function jumpToEdit(categoryId) {
+        window.location.href = "goodsTypeEdit.html?categoryId="+categoryId;
+    }
+
+    function deleteGoodsType(categoryId) {
+        $.ajax({
+            type: 'POST',
+            url: 'deleteGoodsType',
+            contentType: "application/json; charset=utf-8",
+            data: JSON.stringify({
+                "categoryId":categoryId
+            }),
+            //2.根据返回值提示并跳转
+            success:function (response) {
+                if(response==true){
+                    alert("删除成功");
+                    window.location.href = "goodsType.html";
+                }else{
+                    alert("删除失败");
+                }
+            },
+            error:function (response) {
+                alert("服务器内部错误,删除失败");
+            },
+            dataType: 'json'
+        })
+    }
+
+
 </script>
 </body>
 </html>

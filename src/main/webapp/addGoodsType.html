@@ -98,10 +98,10 @@
                         </div>
                         <div class="form-group">
                             <label for="parentTypeId">父类别ID</label>
-                            <input type="text" class="form-control" id="parentTypeId" >
+                            <input type="text" oninput="this.value = this.value.replace(/[^0-9]/g, '');"  class="form-control" id="parentTypeId" >
                         </div>
-                        <button type="button" class="btn btn-success"><i class="glyphicon glyphicon-plus"></i> 新增</button>
-                        <button type="button" class="btn btn-danger"><i class="glyphicon glyphicon-refresh"></i> 重置</button>
+                        <button type="button" class="btn btn-success" onclick="addGoodsType()"><i class="glyphicon glyphicon-plus"></i> 新增</button>
+                        <button type="button" class="btn btn-danger" onclick="reload()"><i class="glyphicon glyphicon-refresh"></i> 重置</button>
                     </form>
                 </div>
             </div>
@@ -150,6 +150,34 @@
             }
         });
     });
+
+    function addGoodsType() {
+        $.ajax({
+            type: 'POST',
+            url: 'insertGoodsType',
+            contentType: "application/json; charset=utf-8",
+            data: JSON.stringify({
+                "typeName":$("#typeName").val(),
+                "parentId":$("#parentTypeId").val()
+            }),
+            //2.根据返回值提示并跳转
+            success:function (response) {
+                if(response==true){
+                    window.location.href = "goodsType.html";
+                }else{
+                    alert("添加失败");
+                }
+            },
+            error:function (response) {
+                alert("服务器内部错误,添加失败");
+            },
+            dataType: 'json'
+        })
+    }
+
+    function reload() {
+        location.reload();
+    }
 </script>
 </body>
 </html>

@@ -94,7 +94,7 @@
                     <form role="form">
                         <div class="form-group">
                             <label for="typeId">商品类型ID</label>
-                            <p type="text" class="form-control" id="typeId" ></p>
+                            <input type="text" class="form-control" id="typeId" readonly="readonly"></input>
                         </div>
                         <div class="form-group">
                             <label for="typeName">商品类别名称</label>
@@ -102,10 +102,10 @@
                         </div>
                         <div class="form-group">
                             <label for="parentTypeId">父类别ID</label>
-                            <input type="text" class="form-control" id="parentTypeId" >
+                            <input type="text" class="form-control" id="parentTypeId" oninput="this.value = this.value.replace(/[^0-9]/g, '');" >
                         </div>
-                        <button type="button" class="btn btn-success"><i class="glyphicon-edit "></i> 修改</button>
-                        <button type="button" class="btn btn-danger"><i class="glyphicon glyphicon-refresh"></i> 重置</button>
+                        <button type="button" class="btn btn-success" onclick="updateGoodsType()"><i class="glyphicon-edit "></i> 修改</button>
+                        <button type="button" class="btn btn-danger" onclick="reload()"><i class="glyphicon glyphicon-refresh"></i> 重置</button>
                     </form>
                 </div>
             </div>
@@ -154,6 +154,56 @@
             }
         });
     });
+
+    var categoryId = window.location.search;
+    categoryId = categoryId.split("=")[1];
+    $.ajax({
+        type: 'POST',
+        url: 'getGoodsTypeById',
+        contentType: "application/json; charset=utf-8",
+        data: JSON.stringify({
+            "categoryId":categoryId
+        }),
+        success:function (goodsType) {
+
+            $("#typeId").val(goodsType.categoryId);
+            $("#typeName").val(goodsType.typeName);
+            $("#parentTypeId").val(goodsType.parentId);
+        },
+        error:function (response) {
+            console.error(response);
+        },
+        dataType: 'json'
+    });
+
+    function updateGoodsType() {
+
+        $.ajax({
+            type: 'POST',
+            url: 'updateGoodsType',
+            contentType: "application/json; charset=utf-8",
+            data: JSON.stringify({
+                "categoryId":categoryId,
+                "typeName":$("#typeName").val(),
+                "parentId":$("#parentTypeId").val()
+            }),
+            success:function (response) {
+                if(response==true){
+                    window.location.href = "goodsType.html";
+                }else{
+                    alert("修改失败");
+                }
+            },
+            error:function (response) {
+                alert("服务器内部错误,修改失败");
+            },
+            dataType: 'json'
+        });
+    }
+
+    function reload() {
+        location.reload();
+    }
 </script>
 </body>
 </html>

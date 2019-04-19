@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.azuki.goodstypesys.mapper.GoodsTypeMapper">
+
+
+    <select id="getGoodsTypeInfo" parameterType="com.azuki.goodstypesys.vo.GoodsTypeVo" resultType="com.azuki.goodstypesys.pojo.GoodsType">
+        select * from goodstype where status = 1
+        <if test="typeName!=null and typeName !=''">
+            and typeName like concat('%',#{typeName},'%')
+        </if>
+        <if test="parentId!=null and parentId!=''">
+            and parentId = #{parentId}
+        </if>
+    </select>
+
+    <update id="deleteGoodsType">
+        update goodstype set status=0 where categoryId=#{categoryId}
+    </update>
+
+    <insert id="addGoodsType" parameterType="com.azuki.goodstypesys.pojo.GoodsType">
+        insert into goodstype values (default ,#{typeName},#{parentId},default )
+    </insert>
+
+    <select id="getGoodsTypeById" resultType="com.azuki.goodstypesys.pojo.GoodsType" parameterType="com.azuki.goodstypesys.pojo.GoodsType">
+        select * from goodstype where status = 1 and categoryId = #{categoryId}
+    </select>
+
+    <update id="updateGoodsType" parameterType="com.azuki.goodstypesys.pojo.GoodsType">
+        UPDATE goodstype
+        <set>
+            <if test="typeName != null and typeName != ''">
+                typeName = #{typeName},
+            </if>
+            <if test="parentId != null">
+                parentId = #{parentId}
+            </if>
+        </set>
+        where categoryId = #{categoryId}
+    </update>
+
+    <update id="batchDel" parameterType="com.azuki.goodstypesys.vo.GoodsTypeVo">
+        update goodstype set status = 0
+        <where>
+            <foreach collection="goodsTypeIds" item="categoryId" separator="or">
+                categoryId = #{categoryId}
+            </foreach>
+        </where>
+    </update>
+</mapper>
