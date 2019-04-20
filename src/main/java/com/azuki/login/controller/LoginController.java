@@ -34,9 +34,16 @@ public class LoginController {
     }
 
     @ResponseBody
-    @RequestMapping(value = "Logout",method = RequestMethod.GET)
+    @RequestMapping(value = "Logout",method = RequestMethod.POST)
     public void Logout(HttpSession httpSession){
         httpSession.removeAttribute("userInfo");
+    }
+
+    @ResponseBody
+    @RequestMapping(value = "getUserInfo",method = RequestMethod.POST)
+    public UserInfo getUserInfo(HttpSession httpSession){
+        UserInfo userInfo = (UserInfo) httpSession.getAttribute("userInfo");
+        return userInfo;
     }
 }
 
